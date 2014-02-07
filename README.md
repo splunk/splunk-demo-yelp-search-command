@@ -82,7 +82,9 @@ python yelp.py __EXECUTE__ 'location="San Francisco"' term=korean < empty.csv
 
 # License
 
-Apache 2.0
+The Splunk Demo Yelp Search Command is licensed under the Apache License 2.0. Details can be found in the file LICENSE.
+
+
 
 
 
