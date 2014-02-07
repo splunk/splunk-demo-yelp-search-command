@@ -1,7 +1,7 @@
 splunk-demo-yelp-search-command
 ===============================
 
-A custom search command for querying yelp's API. This demonstrates how to use the Python SDK's `GeneratingCommand` to query an external API and pipe results into Splunk. You can use the patterns here basically for talking to any API.
+A custom search command for querying [Yelp's API] (http://www.yelp.com/developers/documentation)! This demonstrates how to use the Python SDK's `GeneratingCommand` to query an external API and pipe results into Splunk. You can use the patterns here basically for talking to any API.
 
 # What is it?
 
