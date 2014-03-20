@@ -1,4 +1,6 @@
-# Copyright 2011-2013 Splunk, Inc.
+#!/usr/bin/env python
+#
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -84,8 +86,6 @@ class YelpCommand(GeneratingCommand):
             yield self.getEvent(result, timestamp)
 
     def getEvent(self, result, timestamp):
-        #print json.dumps(result, sort_keys=True, indent=4, separators=(',', ': '))
-
         event = {"_time": timestamp, "name": result["name"], "rating":result["rating"], 
             "address": " ".join(result["location"]["address"]), 
             "city": result["location"]["city"], "state": result["location"]["state_code"], 

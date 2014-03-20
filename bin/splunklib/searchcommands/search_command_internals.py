@@ -1,4 +1,4 @@
-# Copyright 2011-2013 Splunk, Inc.
+# Copyright 2011-2014 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
 # not use this file except in compliance with the License. You may obtain
@@ -138,7 +138,7 @@ class InputHeader(object):
 
     def _update(self, k, v):
         if k is not None:
-            self._settings[k] = v if k != 'infoPath' else open(v, 'r')
+            self._settings[k] = v
         return
 
 
