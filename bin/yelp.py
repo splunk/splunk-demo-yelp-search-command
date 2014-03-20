@@ -74,25 +74,25 @@ class YelpCommand(GeneratingCommand):
             config['token-secret'])
         
         response = requests.get(url)
+
+        timestamp = time.time()
+        results = response.json()
         
         if response.status_code != 200:
-            print response.text
+            yield {'ERROR': results['error']['text']}
             return
         
-        result = response.json()
-        
-        timestamp = time.time()
         for result in results["businesses"]:
             yield self.getEvent(result, timestamp)
 
     def getEvent(self, result, timestamp):
-        event = {"_time": timestamp, "name": result["name"], "rating":result["rating"], 
-            "address": " ".join(result["location"]["address"]), 
-            "city": result["location"]["city"], "state": result["location"]["state_code"], 
-            "zip": result["location"]["postal_code"], "neighborhoods": "", "url": result["url"]}
+        event = {'_time': timestamp, 'name': result['name'], 'rating':result['rating'], 
+            'address': ', '.join(result['location']['address']),
+            'city': result['location']['city'], 'state': result['location']['state_code'], 
+            'zip': result['location']['postal_code'], 'neighborhoods': '', 'url': result['url']}
 
-        if "neighborhoods" in result["location"]:
-            event["neighborhoods"] = ", ".join(result["location"]["neighborhoods"])
+        if 'neighborhoods' in result['location']:
+            event['neighborhoods'] = ', '.join(result['location']['neighborhoods'])
 
         event["_raw"] = json.dumps(result)
 
