@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-#
 # Copyright 2011-2013 Splunk, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License"): you may
@@ -51,7 +49,7 @@ class YelpCommand(GeneratingCommand):
         doc='''
         **Syntax:** **sort=***<sort>*
         **Description:** Sort mode: 0=Best matched (default), 1=Distance, 2=Highest Rated''',
-        require=False, validate=validators.Integer())
+        require=False, validate=validators.Integer(), default=1)
 
     limit = Option(
         doc='''
@@ -72,7 +70,15 @@ class YelpCommand(GeneratingCommand):
             config['consumer-secret'],
             config['token'],
             config['token-secret'])
-        results = requests.get(url).json()
+        
+        response = requests.get(url)
+        
+        if response.status_code != 200:
+            print response.text
+            return
+        
+        result = response.json()
+        
         timestamp = time.time()
         for result in results["businesses"]:
             yield self.getEvent(result, timestamp)
@@ -107,11 +113,6 @@ class YelpCommand(GeneratingCommand):
         
         if self.term is not None:
             url_params['term'] = self.term
-
-        if self.sort is not None:
-            url_params['sort'] = self.sort
-        else:
-            url_params['sort'] = 1
 
         if self.limit is not None:
             url_params['limit'] = self.limit
