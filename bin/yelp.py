@@ -17,17 +17,12 @@
 
 # python yelp.py __EXECUTE__ 'location="New York"'
 
-import sys
-import time
+import sys, time, requests, oauth2, json, urllib
+
 from splunklib.searchcommands import \
     dispatch, GeneratingCommand, Configuration, Option, validators
 
-import requests
-import oauth2
-import json
-import urllib
-
-@Configuration(retainsevents=False)
+@Configuration()
 class YelpCommand(GeneratingCommand):
     location = Option(
         doc='''
@@ -75,7 +70,6 @@ class YelpCommand(GeneratingCommand):
         
         response = requests.get(url)
 
-        timestamp = time.time()
         results = response.json()
         
         if response.status_code != 200:
@@ -83,10 +77,10 @@ class YelpCommand(GeneratingCommand):
             return
         
         for result in results["businesses"]:
-            yield self.getEvent(result, timestamp)
+            yield self.getEvent(result)
 
-    def getEvent(self, result, timestamp):
-        event = {'_time': timestamp, 'name': result['name'], 'rating':result['rating'], 
+    def getEvent(self, result):
+        event = {'_time': time.time(), 'name': result['name'], 'rating':result['rating'], 
             'address': ', '.join(result['location']['address']),
             'city': result['location']['city'], 'state': result['location']['state_code'], 
             'zip': result['location']['postal_code'], 'neighborhoods': '', 'url': result['url']}
