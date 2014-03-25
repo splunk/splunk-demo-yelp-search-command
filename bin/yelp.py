@@ -20,94 +20,96 @@
 import sys, time, requests, oauth2, json, urllib
 
 from splunklib.searchcommands import \
-    dispatch, GeneratingCommand, Configuration, Option, validators
+  dispatch, GeneratingCommand, Configuration, Option, validators
 
 @Configuration()
 class YelpCommand(GeneratingCommand):
-    term = Option(require=False)
+  location = Option(require=True)
 
-    category = Option(require=False)
+  term = Option(require=False)
 
-    sort = Option(require=False, validate=validators.Integer(), default=1)
+  category = Option(require=False)
 
-    limit = Option(require=False, validate=validators.Integer())
+  sort = Option(require=False, validate=validators.Integer(), default=1)
 
-    offset = Option(require=False, validate=validators.Integer())
+  limit = Option(require=False, validate=validators.Integer())
 
-    def generate(self):
-        config = self.get_configuration()
-        url = self.get_yelp_signed_url(
-            config['consumer-key'],
-            config['consumer-secret'],
-            config['token'],
-            config['token-secret'])
-        
-        response = requests.get(url)
+  offset = Option(require=False, validate=validators.Integer())
 
-        results = response.json()
-        
-        if response.status_code != 200:
-            yield {'ERROR': results['error']['text']}
-            return
-        
-        for result in results["businesses"]:
-            yield self.getEvent(result)
+  def generate(self):
+    config = self.get_configuration()
+    url = self.get_yelp_signed_url(
+      config['consumer-key'],
+      config['consumer-secret'],
+      config['token'],
+      config['token-secret'])
+    
+    response = requests.get(url)
 
-    def getEvent(self, result):
-        event = {'_time': time.time(), 'name': result['name'].encode('utf-8'), 'rating':result['rating'], 
-            'address': ', '.join(result['location']['address']),
-            'city': result['location']['city'], 'state': result['location']['state_code'], 
-            'zip': result['location']['postal_code'], 'neighborhoods': '', 'url': result['url']}
+    results = response.json()
+    
+    if response.status_code != 200:
+      yield {'ERROR': results['error']['text']}
+      return
+    
+    for result in results["businesses"]:
+      yield self.getEvent(result)
 
-        if 'neighborhoods' in result['location']:
-            event['neighborhoods'] = ', '.join(result['location']['neighborhoods'])
+  def getEvent(self, result):
+    event = {'_time': time.time(), 'name': result['name'].encode('utf-8'), 'rating':result['rating'], 
+      'address': ', '.join(result['location']['address']),
+      'city': result['location']['city'], 'state': result['location']['state_code'], 
+      'zip': result['location']['postal_code'], 'neighborhoods': '', 'url': result['url']}
 
-        event["_raw"] = json.dumps(result)
+    if 'neighborhoods' in result['location']:
+      event['neighborhoods'] = ', '.join(result['location']['neighborhoods'])
 
-        return event
+    event["_raw"] = json.dumps(result)
 
-    def get_configuration(self):
-        config_file = open('./config.json')
-        return json.load(config_file)
+    return event
 
-    def get_yelp_signed_url(self, consumer_key, consumer_secret, token,
-                       token_secret):
-        url_params = {}
+  def get_configuration(self):
+    config_file = open('./config.json')
+    return json.load(config_file)
 
-        url_params['location'] = self.location
+  def get_yelp_signed_url(self, consumer_key, consumer_secret, token,
+                     token_secret):
+    url_params = {}
 
-        if self.category is not None:
-            url_params['category_filter'] = self.category
-        
-        if self.term is not None:
-            url_params['term'] = self.term
+    url_params['location'] = self.location
 
-        if self.limit is not None:
-            url_params['limit'] = self.limit
+    if self.category is not None:
+      url_params['category_filter'] = self.category
+    
+    if self.term is not None:
+      url_params['term'] = self.term
 
-        if self.offset is not None:
-            url_params['offset'] = self.offset
+    if self.limit is not None:
+      url_params['limit'] = self.limit
 
-        """Returns response for API request."""
-        # Unsigned URL
-        encoded_params = ''
-        if url_params:
-            encoded_params = urllib.urlencode(url_params)
-        url = 'http://api.yelp.com/v2/search?%s' % (encoded_params)
+    if self.offset is not None:
+      url_params['offset'] = self.offset
 
-        # Sign the URL
-        consumer = oauth2.Consumer(consumer_key, consumer_secret)
-        oauth_request = oauth2.Request('GET', url, {})
-        oauth_request.update({'oauth_nonce': oauth2.generate_nonce(),
-                              'oauth_timestamp': oauth2.generate_timestamp(),
-                              'oauth_token': token,
-                              'oauth_consumer_key': consumer_key})
+    """Returns response for API request."""
+    # Unsigned URL
+    encoded_params = ''
+    if url_params:
+      encoded_params = urllib.urlencode(url_params)
+    url = 'http://api.yelp.com/v2/search?%s' % (encoded_params)
 
-        token = oauth2.Token(token, token_secret)
-        oauth_request.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), consumer,
-                                   token)
-        signed_url = oauth_request.to_url()
-        return signed_url
+    # Sign the URL
+    consumer = oauth2.Consumer(consumer_key, consumer_secret)
+    oauth_request = oauth2.Request('GET', url, {})
+    oauth_request.update(
+      {'oauth_nonce': oauth2.generate_nonce(),
+      'oauth_timestamp': oauth2.generate_timestamp(),
+      'oauth_token': token,
+      'oauth_consumer_key': consumer_key})
 
+    token = oauth2.Token(token, token_secret)
+    oauth_request.sign_request(oauth2.SignatureMethod_HMAC_SHA1(), 
+      consumer, token)
+    signed_url = oauth_request.to_url()
+    return signed_url
 
 dispatch(YelpCommand, sys.argv, sys.stdin, sys.stdout, __name__)
