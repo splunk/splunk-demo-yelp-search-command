@@ -24,41 +24,17 @@ from splunklib.searchcommands import \
 
 @Configuration()
 class YelpCommand(GeneratingCommand):
-    location = Option(
-        doc='''
-        **Syntax:** **location=***<location>*
-        **Description:** Location to search for businesses''',
-        require=True)
+v
 
-    term = Option(
-        doc='''
-        **Syntax:** **term=***<term>*
-        **Description:** Type of business''',
-        require=False)
+    term = Option(require=False)
 
-    category = Option(
-        doc='''
-        **Syntax:** **category=***<category>*
-        **Description:** Delimitted list of categories''',
-        require=False)
+    category = Option(require=False)
 
-    sort = Option(
-        doc='''
-        **Syntax:** **sort=***<sort>*
-        **Description:** Sort mode: 0=Best matched (default), 1=Distance, 2=Highest Rated''',
-        require=False, validate=validators.Integer(), default=1)
+    sort = Option(require=False, validate=validators.Integer(), default=1)
 
-    limit = Option(
-        doc='''
-        **Syntax:** **limit=***<limit>*
-        **Description:** Number of records to return''',
-        require=False, validate=validators.Integer())
+    limit = Option(require=False, validate=validators.Integer())
 
-    offset = Option(
-        doc='''
-        **Syntax:** **offset=***<offset>*
-        **Description:** Offset the list of returned business results by this amount''',
-        require=False, validate=validators.Integer())
+    offset = Option(require=False, validate=validators.Integer())
 
     def generate(self):
         config = self.get_configuration()
@@ -80,7 +56,7 @@ class YelpCommand(GeneratingCommand):
             yield self.getEvent(result)
 
     def getEvent(self, result):
-        event = {'_time': time.time(), 'name': result['name'], 'rating':result['rating'], 
+        event = {'_time': time.time(), 'name': result['name'].encode('utf-8'), 'rating':result['rating'], 
             'address': ', '.join(result['location']['address']),
             'city': result['location']['city'], 'state': result['location']['state_code'], 
             'zip': result['location']['postal_code'], 'neighborhoods': '', 'url': result['url']}
