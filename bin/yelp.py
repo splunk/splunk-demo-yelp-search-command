@@ -24,8 +24,6 @@ from splunklib.searchcommands import \
 
 @Configuration()
 class YelpCommand(GeneratingCommand):
-v
-
     term = Option(require=False)
 
     category = Option(require=False)
