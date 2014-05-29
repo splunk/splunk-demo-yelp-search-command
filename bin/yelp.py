@@ -17,7 +17,7 @@
 
 # python yelp.py __EXECUTE__ 'location="New York"'
 
-import sys, time, requests, oauth2, json, urllib
+import os, sys, time, requests, oauth2, json, urllib
 
 from splunklib.searchcommands import \
   dispatch, GeneratingCommand, Configuration, Option, validators
@@ -69,7 +69,8 @@ class YelpCommand(GeneratingCommand):
     return event
 
   def get_configuration(self):
-    config_file = open('./config.json')
+    sourcePath = os.path.dirname(os.path.abspath(__file__))
+    config_file = open(sourcePath + '/config.json')
     return json.load(config_file)
 
   def get_yelp_signed_url(self, consumer_key, consumer_secret, token,
